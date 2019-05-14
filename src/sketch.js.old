@@ -1,0 +1,128 @@
+let sprites = []
+let bg;
+const spriteData = {
+  BOARD: 0,
+  GENERAL: 1,
+  LIEUTENANT_GENERAL: 2,
+  MAJOR_GENERAL: 3,
+  COLONEL: 4,
+  LIEUTENANT_COLONEL: 5,
+  MAJOR: 6,
+  CAPTAIN: 7,
+  FIRST_LIEUTENANT: 8,
+  SECOND_LIEUTENANT: 9,
+  AIRPLANE: 10,
+  TANK: 11,
+  CAVALRY: 12,
+  ENGINEER: 13,
+  SPY: 14,
+  MINE: 15,
+  REGIMENT: 16
+}
+
+function preload() {
+  bg = loadImage('../assets/gamebg.jpg');
+  sprites.push(loadImage('../assets/Field Tactics Board.png'));
+  sprites.push(loadImage('../assets/General Piece.png'));
+  sprites.push(loadImage('../assets/Lieutenant General Piece.png'));
+  sprites.push(loadImage('../assets/Major General Piece.png'));
+  sprites.push(loadImage('../assets/Colonel Piece.png'));
+  sprites.push(loadImage('../assets/Lieutenant Colonel Piece.png'));
+  sprites.push(loadImage('../assets/Major Piece.png'));
+  sprites.push(loadImage('../assets/Captain Piece.png'));
+  sprites.push(loadImage('../assets/First Lieutenant Piece.png'));
+  sprites.push(loadImage('../assets/Second Lieutenant Piece.png'));
+  sprites.push(loadImage('../assets/Airplane Piece.png'));
+  sprites.push(loadImage('../assets/Tank Piece.png'));
+  sprites.push(loadImage('../assets/Cavalry Piece.png'));
+  sprites.push(loadImage('../assets/Engineer Piece.png'));
+  sprites.push(loadImage('../assets/Spy Piece.png'));
+  sprites.push(loadImage('../assets/Mine Piece.png'));
+  sprites.push(loadImage('../assets/Regiment Piece.png'));
+}
+
+const CELL_WIDTH_RATIO = 0.16389548693;
+const CELL_HEIGHT_RATIO = 0.11391372922;
+const SPACING_WIDTH_RATIO = 0.00335041880;
+const SPACING_HEIGHT_RATIO = 0.00416772062;
+const RIVER_HEIGHT_RATIO = 0.06368533039;
+let bgHeight, bgWidth;
+let boardHeight, boardWidth;
+let riverHeight;
+let tiles = [];
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  if (width / max(1, height) < sprites[spriteData.BOARD].width / max(1, sprites[spriteData.BOARD].height)) {
+    boardWidth = width;
+    boardHeight = sprites[spriteData.BOARD].height * width / sprites[spriteData.BOARD].width;
+  } else {
+    boardWidth = sprites[spriteData.BOARD].width * height / sprites[spriteData.BOARD].height;
+    boardHeight = height;
+  }
+  if (width / max(1, height) < bg.width / max(1, bg.height)) {
+    bgWidth = bg.width * height / bg.height;
+    bgHeight = height;
+  } else {
+    bgWidth = width;
+    bgHeight = bg.height * width / bg.width;
+  }
+  cellSize = createVector(boardWidth * CELL_WIDTH_RATIO, boardHeight * CELL_HEIGHT_RATIO);
+  cellSpacing = createVector(boardWidth * SPACING_WIDTH_RATIO, boardHeight * SPACING_HEIGHT_RATIO);
+  riverHeight = boardHeight * RIVER_HEIGHT_RATIO;
+  let count = 0;
+  for (let j = 0; j < 6; j++) {
+    if (j == 2) {
+      tiles.push(new Tile(createVector(width / 2 - boardWidth / 2 + cellSize.x + j * (cellSize.x + cellSpacing.x), height / 2 - boardHeight / 2 + cellSize.y / 2), cellSize, createVector(j, 7)));
+      tiles[count++].piece = sprites[floor(Math.random() * (sprites.length - 1)) + 1];
+    } else if (j != 3) {
+      tiles.push(new Tile(createVector(width / 2 - boardWidth / 2 + cellSize.x / 2 + j * (cellSize.x + cellSpacing.x), height / 2 - boardHeight / 2 + cellSize.y / 2), cellSize, createVector(j, 7)));
+      tiles[count++].piece = sprites[floor(Math.random() * (sprites.length - 1)) + 1];
+    }
+  }
+  for (let i = 1; i < 4; i++)
+    for (let j = 0; j < 6; j++) {
+      tiles.push(new Tile(createVector(width / 2 - boardWidth / 2 + cellSize.x / 2 + j * (cellSize.x + cellSpacing.x), height / 2 - boardHeight / 2 + cellSize.y / 2 + i * (cellSize.y + cellSpacing.y)), cellSize, createVector(j, 7 - i)));
+      tiles[count++].piece = sprites[floor(Math.random() * (sprites.length - 1)) + 1];
+    }
+  for (let i = 4; i < 7; i++)
+    for (let j = 0; j < 6; j++) {
+      tiles.push(new Tile(createVector(width / 2 - boardWidth / 2 + cellSize.x / 2 + j * (cellSize.x + cellSpacing.x), riverHeight + height / 2 - boardHeight / 2 + cellSize.y / 2 + i * (cellSize.y + cellSpacing.y) - cellSpacing.y), cellSize, createVector(j, 7 - i), true));
+      tiles[count++].piece = sprites[floor(Math.random() * (sprites.length - 1)) + 1];
+    }
+  for (let j = 0; j < 6; j++) {
+    if (j == 2) {
+      tiles.push(new Tile(createVector(width / 2 - boardWidth / 2 + cellSize.x + j * (cellSize.x + cellSpacing.x), riverHeight + height / 2 - boardHeight / 2 + cellSize.y / 2 + 7 * (cellSize.y + cellSpacing.y) - cellSpacing.y), cellSize, createVector(j, 0), true));
+      tiles[count++].piece = sprites[floor(Math.random() * (sprites.length - 1)) + 1];
+    } else if (j != 3) {
+      tiles.push(new Tile(createVector(width / 2 - boardWidth / 2 + cellSize.x / 2 + j * (cellSize.x + cellSpacing.x), riverHeight + height / 2 - boardHeight / 2 + cellSize.y / 2 + 7 * (cellSize.y + cellSpacing.y) - cellSpacing.y), cellSize, createVector(j, 0), true));
+      tiles[count++].piece = sprites[floor(Math.random() * (sprites.length - 1)) + 1];
+    }
+  }
+  imageMode(CENTER);
+  rectMode(CENTER);
+}
+
+function draw() {
+  image(bg, width / 2, height / 2, bgWidth, bgHeight);
+  fill(44 + 25 * noise(frameCount / 100), 207 + 25 * noise(frameCount / 100), 238 + 25 * noise(frameCount / 100));
+  rect(width / 2, height / 2, boardWidth, riverHeight);
+  push();
+  tint(160, 208, 143);
+  image(sprites[spriteData.BOARD], width / 2, height / 2, boardWidth, boardHeight);
+  pop();
+  for (let tile of tiles)
+    tile.show();
+  // image(sprites[floor(Math.random() * sprites.length)], mouseX, mouseY, 124, 70);
+}
+
+function make2DArray(rows, cols) {
+  a = [];
+  for (let i = 0; i < rows; ++i)
+    a.push([]);
+  if (cols)
+    for (let i = 0; i < rows; ++i)
+      for (let j = 0; j < cols; ++j)
+        a[i].push(null);
+  return a;
+}
